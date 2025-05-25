@@ -1,0 +1,267 @@
+V "GNAT Lib v13"
+M P W=b
+P SS ZX
+
+RN
+RV NO_DELAY
+RV NO_DIRECT_BOOLEAN_OPERATORS
+RV NO_ENUMERATION_MAPS
+RV NO_EXCEPTION_HANDLERS
+RV NO_EXCEPTIONS
+RV NO_FIXED_POINT
+RV NO_FLOATING_POINT
+RV NO_IO
+RV NO_IMPLICIT_CONDITIONALS
+RV NO_LOCAL_PROTECTED_OBJECTS
+RV NO_PROTECTED_TYPES
+RV NO_RELATIVE_DELAY
+RV NO_SECONDARY_STACK
+RV NO_STANDARD_STORAGE_POOLS
+RV NO_TASK_HIERARCHY
+RV NO_TASKING
+RV NO_DEFAULT_INITIALIZATION
+RV NO_DYNAMIC_SIZED_OBJECTS
+RV NO_IMPLICIT_LOOPS
+RV MAX_TASK_ENTRIES=1
+RV MAX_TASKS=1+
+RV MAX_ENTRY_QUEUE_LENGTH=1+
+
+U mutex_template%b	ex1.adb			937dfb0d NE OO SU
+W ada%s			ada.ads			ada.ali
+Z ada.calendar.delays%s	a-caldel.adb		a-caldel.ali
+Z ada.exceptions%s	a-except.adb		a-except.ali
+W ada.numerics%s	a-numeri.ads		a-numeri.ali
+W ada.numerics.float_random%s  a-nuflra.adb	a-nuflra.ali
+W ada.real_time%s	a-reatim.adb		a-reatim.ali
+Z ada.strings.text_buffers%s  a-sttebu.adb	a-sttebu.ali
+W ada.text_io%s		a-textio.adb		a-textio.ali
+Z interfaces%s		interfac.ads		interfac.ali
+W random_seeds%s	random_seeds.adb	random_seeds.ali
+Z system%s		system.ads		system.ali
+Z system.arith_64%s	s-arit64.adb		s-arit64.ali
+Z system.concat_2%s	s-conca2.adb		s-conca2.ali
+Z system.concat_3%s	s-conca3.adb		s-conca3.ali
+Z system.concat_7%s	s-conca7.adb		s-conca7.ali
+Z system.concat_9%s	s-conca9.adb		s-conca9.ali
+Z system.img_fixed_64%s	s-imfi64.ads		s-imfi64.ali
+Z system.img_int%s	s-imgint.ads		s-imgint.ali
+Z system.parameters%s	s-parame.adb		s-parame.ali
+Z system.secondary_stack%s  s-secsta.adb	s-secsta.ali
+Z system.soft_links%s	s-soflin.adb		s-soflin.ali
+Z system.task_info%s	s-tasinf.adb		s-tasinf.ali
+Z system.tasking%s	s-taskin.adb		s-taskin.ali
+Z system.tasking.protected_objects%s  s-taprob.adb  s-taprob.ali
+Z system.tasking.rendezvous%s  s-tasren.adb	s-tasren.ali
+Z system.tasking.stages%s  s-tassta.adb		s-tassta.ali
+
+D ada.ads		20240521074738 76789da1 ada%s
+D a-assert.ads		20240521074737 ba465f5c ada.assertions%s
+D a-calend.ads		20240904144414 e6961b4c ada.calendar%s
+D a-caldel.ads		20240521074737 9f20b83d ada.calendar.delays%s
+D a-except.ads		20240521074738 2a7d8d70 ada.exceptions%s
+D a-finali.ads		20240521074738 bf4f806b ada.finalization%s
+D a-ioexce.ads		20240521074738 40018c65 ada.io_exceptions%s
+D a-numeri.ads		20240521074738 84bea7a3 ada.numerics%s
+D a-nubinu.ads		20240521074738 93f1f3d1 ada.numerics.big_numbers%s
+D a-nbnbig.ads		20240521074738 711e0174 ada.numerics.big_numbers.big_integers_ghost%s
+D a-nuflra.ads		20240521074738 4056ab7a ada.numerics.float_random%s
+D a-reatim.ads		20240521074737 b89a10c3 ada.real_time%s
+D a-stream.ads		20240521074738 119b8fb3 ada.streams%s
+D a-string.ads		20240521074738 90ac6797 ada.strings%s
+D a-sttebu.ads		20240521074738 f1ad67a2 ada.strings.text_buffers%s
+D a-stuten.ads		20240521074738 c6ced0ae ada.strings.utf_encoding%s
+D a-tags.ads		20240521074738 9eaa38c6 ada.tags%s
+D a-textio.ads		20240521074738 5c2c6153 ada.text_io%s
+D a-unccon.ads		20240521074738 0e9b276f ada.unchecked_conversion%s
+D interfac.ads		20240521074738 15f799c2 interfaces%s
+D i-c.ads		20240521074738 5c5a6c17 interfaces.c%s
+D i-cstrea.ads		20240521074738 e53d8b8e interfaces.c_streams%s
+D ex1.adb		20250525095917 2d225211 mutex_template%b
+D random_seeds.ads	20250525100042 1abf73f6 random_seeds%s
+D system.ads		20240521074738 426dafb8 system%s
+D s-atacco.ads		20240521074738 903317eb system.address_to_access_conversions%s
+D s-arit64.ads		20240521074738 90488c35 system.arith_64%s
+D s-assert.ads		20240521074738 9c4520c7 system.assertions%s
+D s-c_time.ads		20240904144414 535885c5 system.c_time%s
+D s-casuti.ads		20240521074738 cf13d755 system.case_util%s
+D s-conca2.ads		20240521074738 b5fb73f7 system.concat_2%s
+D s-conca3.ads		20240521074738 8a7a19a2 system.concat_3%s
+D s-conca7.ads		20240521074738 09fd419f system.concat_7%s
+D s-conca9.ads		20240521074738 54efc86b system.concat_9%s
+D s-crtl.ads		20240521074738 8a0692f8 system.crtl%s
+D s-exctab.ads		20240521074738 91bef6ef system.exception_table%s
+D s-ficobl.ads		20240521074738 dc5161d4 system.file_control_block%s
+D s-finroo.ads		20240521074738 4ff27390 system.finalization_root%s
+D s-imagef.ads		20240521074738 2a557a85 system.image_f%s
+D s-imagei.ads		20240521074738 c707dfd0 system.image_i%s
+D s-imfi64.ads		20240521074738 c2808cae system.img_fixed_64%s
+D s-imgint.ads		20240521074738 d4a52a9b system.img_int%s
+D s-linux.ads		20240904144414 96312dab system.linux%s
+D s-multip.ads		20240521074738 38ac9f73 system.multiprocessors%s
+D s-oscons.ads		20240904144414 ece202eb system.os_constants%s
+D s-osinte.ads		20240904144414 a8f58951 system.os_interface%s
+D s-parame.ads		20240904144414 1f39ba92 system.parameters%s
+D s-putima.ads		20240521074738 17291fe4 system.put_images%s
+D s-rannum.ads		20240521074738 95815eca system.random_numbers%s
+D s-secsta.ads		20240521074738 578279f5 system.secondary_stack%s
+D s-soflin.ads		20240521074738 df77073e system.soft_links%s
+D s-stache.ads		20240521074738 0b81c1fe system.stack_checking%s
+D s-stausa.ads		20240521074738 5be75682 system.stack_usage%s
+D s-stalib.ads		20240521074738 1c9580f6 system.standard_library%s
+D s-stoele.ads		20240521074738 ab5468e4 system.storage_elements%s
+D s-stoele.adb		20240521074738 8f5a9db6 system.storage_elements%b
+D s-tasinf.ads		20240521074737 528dde74 system.task_info%s
+D s-taspri.ads		20240521074737 4ec891e7 system.task_primitives%s
+D s-taprop.ads		20240521074737 6eefbe12 system.task_primitives.operations%s
+D s-taskin.ads		20240521074737 0ec7ab0b system.tasking%s
+D s-taprob.ads		20240521074737 acd6094d system.tasking.protected_objects%s
+D s-tpoben.ads		20240521074737 60ad3dae system.tasking.protected_objects.entries%s
+D s-tasren.ads		20240521074737 a67a9949 system.tasking.rendezvous%s
+D s-tassta.ads		20240521074737 cca55c94 system.tasking.stages%s
+D s-traent.ads		20240521074738 c81cbf8c system.traceback_entries%s
+D s-unstyp.ads		20240521074738 fa2a7f59 system.unsigned_types%s
+D s-valint.ads		20240521074738 1f610d7a system.val_int%s
+D s-valuns.ads		20240521074738 e8a1f424 system.val_uns%s
+D s-valuti.ads		20240521074738 fcd603d8 system.val_util%s
+D s-valuei.ads		20240521074738 11081e09 system.value_i%s
+D s-vaispe.ads		20240521074738 44130d39 system.value_i_spec%s
+D s-valueu.ads		20240521074738 18770347 system.value_u%s
+D s-vauspe.ads		20240521074738 a67b2f28 system.value_u_spec%s
+D s-wchcon.ads		20240521074738 d9032363 system.wch_con%s
+D s-widuns.ads		20240521074738 866a5800 system.wid_uns%s
+D s-widthu.ads		20240521074738 b32f15e2 system.width_u%s
+G a e
+G c Z b b [mutex_template standard 6 12 none]
+G r c none [mutex_template standard 6 12 none] [make_seeds random_seeds 6 13 none]
+X 1 ada.ads
+16K9*Ada 20e8 23|1r6 1r23 2r6 2r37 4r6 4r25
+X 8 a-numeri.ads
+16K13*Numerics 35e17 23|2r10 2r41
+X 11 a-nuflra.ads
+41K22*Float_Random 74e30 23|2w19 2r50
+47R9*Generator<49|65R9> 23|199r9
+49F12*Uniformly_Distributed{float}
+51V13*Random{49F12}<49|73p13> 23|236s74 250s54 282s54
+54U14*Reset<49|109p14> 23|227s7
+X 12 a-reatim.ads
+39K13*Real_Time 186e18 23|4w10 4r29
+50O9*Time<duration> 23|101r16
+55O9*Time_Span<duration>
+62V13*Clock{50O9} 23|101s24 219s35 238s35
+72V14*"-"{55O9} 23|219s41 238s41
+111V13*To_Duration{duration} 23|219s21 238s21
+X 18 a-textio.ads
+58K13*Text_IO 787e16 23|1w10 1r27
+519U14*Put 23|171s5 178s7
+566U14*Put_Line 23|134s5 181s5
+X 20 interfac.ads
+56I9*Integer_64<long_long_integer>
+X 23 ex1.adb
+6U12*Mutex_Template 6b12 320l5 320t19
+11i3 Nr_Of_Processes{integer} 35r34 36r32 64r21 96r38 105r31 105r64 162r19
+. 173r22 265r21 305r30
+13i3 Min_Steps{integer} 236r22 236r61
+14i3 Max_Steps{integer} 123r40 236r49
+16o3 Min_Delay{duration} 250r13 250r34 282r13 282r34
+17o3 Max_Delay{duration} 250r24 282r24
+19A8 Boolean_Array(boolean)<integer> 35r15
+20A6 Integer_Array(integer)<integer> 36r13
+23w11 Bakery 40b16 83l5 83t11 181r44 255r7 257r33 260r9 261r9 263r7 267r15
+. 273r16 274r17 274r40 275r18 275r41 288r38 290r30 291r13 293r10 298r5
+24U14 Set_Choosing 24>27 24>39 41b14 44l8 44t20 255s14 263s14
+24i27 I{integer} 41b27 43r16
+24b39 Val{boolean} 41b39 43r22
+25V13 Is_Choosing{boolean} 25>25 46b13 49l8 49t19 267s22
+25i25 I{integer} 46b25 48r23
+27U14 Set_Number 27>25 27>37 51b14 54l8 54t18 260s16 293s17
+27i25 I{integer} 51b25 53r14
+27i37 Val{integer} 51b37 53r20
+28V13 Get_Number{integer} 28>24 56b13 59l8 59t18 273s23 274s24 274s47 275s25
+. 275s48 288s45
+28i24 I{integer} 56b24 58r21
+30V13 Max_Ticket{integer} 61b13 70l8 70t18 257s40
+32U14 Update_Max 32>25 72b14 77l8 77t18 261s16 291s20 298s12
+32i25 Val{integer} 72b25 74r10 75r29
+33V13 Get_Max{integer} 79b13 82l8 82t15 181s51 290s37
+35a4 Choosing{19A8} 43r7 48r14
+36a4 Number{20A6} 53r7 58r14 65r13 66r23
+37i4 Max_Used_Ticket{integer} 74r16 75r10 81r14
+62i7 MaxVal{integer} 65r25 66m13 69r14
+64i11 I{integer} 65r20 66r30
+87E8 Process_State 92e6 97r38 97r57 177r14 217r36 220r29 233r16
+88n5 Local_Section{87E8} 233r35 296r21
+89n5 Entry_Protocol{87E8} 253r21
+90n5 Critical_Section{87E8} 279r21
+91n5 Exit_Protocol{87E8} 285r21
+96i3 Board_Width{integer} 111r27 174r22
+97i3 Board_Height{integer} 112r27 175r22
+101o3 Start_Time{12|50O9} 219r43 238r43
+105a3 Seeds{24|5A9} 311r31
+110R8 Position_Type 113e13 119r15 189r15
+111i5 X{integer} 137r39 232m11
+112i5 Y{integer} 138r39 220m24 233m11
+116R8 Trace_Type 121e13 123r54 131r34
+117o5 Time_Stamp{duration} 135r31 210m11
+118i5 Id{integer} 136r30 211m11
+119r5 Position{110R8} 137r30 138r30 212m11
+120e5 Symbol{character} 132r37 139r22 213m11
+123A8 Trace_Array_type(116R8)<integer> 127r18
+125R8 Traces_Sequence_Type 128e13 143r36 154r28 163r33 203r13
+126i5 Last{integer} 145r26 208m14 208r29 209r34
+127a5 Trace_Array{123A8} 146r27 209m14
+131U13 Print_Trace 131b13 131>26 141l7 141t18 146s7
+131r26 Trace{116R8} 132r31 135r25 136r24 137r24 138r24 139r16
+132a5 Symbol{string}
+143U13 Print_Traces 143b13 143>27 148l7 148t19 165s11
+143r27 Traces{125R8} 145r19 146r20
+145i9 I{integer} 146r40
+153t8 Printer 157b13 183l7 183t14 299r5
+154Y11 Report 154>19 163b16 166l13 166t19 299s13
+154r19 Traces{125R8} 165r25
+162i9 I{integer}
+163r24 Traces{125R8}
+177e9 I{87E8} 178r12
+186R8 Process_Type 190e13 200r15
+187i5 Id{integer} 211r25 228m15 255r35 260r35 263r35 274r66 275r67 275r87
+. 288r64 293r36
+188e5 Symbol{character} 213r29 229m15
+189r5 Position{110R8} 212r31 220m15 231m15
+193T13 Process_Task_Type 196l7 196e24 198b13 300l7 300t24 305r52
+194Y11 Init 194>16 194>29 194>44 226b12 240l9 240t13 311s22
+194i16 Id{integer} 228r21 232r16
+194i29 Seed{integer} 227r16
+194e44 Symbol{character} 229r25
+195Y11 Start 243b12 245l9 245t14 317s22
+199r5 G{11|47R9} 227r13 236r81 250r61 282r61
+200r5 Process{186R8} 211r17 212r23 213r21 220m7 228m7 229m7 231m7 255r27
+. 260r27 263r27 274r58 275r59 275r79 288r56 293r28
+201o5 Time_Stamp{duration} 210r25 219m7 238m7
+202i5 Nr_of_Steps{integer} 236m7 248r22
+203r5 Traces{125R8} 208m7 208r22 209m7 209r27 299r21
+204i5 Max_Ticket_Seen{integer} 298r23
+206U15 Store_Trace 206b15 215l9 215t20 221s7 239s7
+217U15 Change_State 217b15 217>29 222t8 253s7 279s7 285s7 296s7
+217e29 State{87E8} 220r48
+226i17 Id{integer}
+226i30 Seed{integer}
+226e45 Symbol{character}
+248i9 Step{integer}
+257i9 Max_Ticket{integer} 258r33 260r39
+258i9 New_Ticket{integer} 261r27
+265i11 J{integer} 267r34 273r34 274r35 275r36 275r75
+288i10 Current_Ticket{integer} 290r13 291r31
+305a3 Process_Tasks(193T13) 310r12 311r5 316r12 317r5
+306e3 Symbol{character} 311r43 312m5 312r31
+310i7 I{integer} 311r19 311r28 311r37
+316i7 I{integer} 317r19
+X 24 random_seeds.ads
+3K9*Random_Seeds 23|3w6 3r24 24|7e17
+5A9*Seed_Array_Type(integer)<integer> 23|105r11
+6V13*Make_Seeds{5A9} 23|105s52
+X 27 s-arit64.ads
+59I12*Int64{20|56I9}
+92V13*Multiply_With_Ovflo_Check64{59I12} 96i<c,__gnat_mulv64>22
+X 53 s-stausa.ads
+207U14*Initialize 208i<c,__gnat_stack_usage_initialize>22
+272U14*Output_Results 276i<c,__gnat_stack_usage_output_results>22
+
