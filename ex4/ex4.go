@@ -4,29 +4,39 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
+var WaitGroup sync.WaitGroup
+
 const (
-	NrOfTravelers = 2 // Dekker's works only for 2 processes
-	MinSteps      = 50
-	MaxSteps      = 100
+	NrOfProcess = 2
+
+	MinSteps = 50
+	MaxSteps = 100
 
 	MinDelay = 10 * time.Millisecond
 	MaxDelay = 50 * time.Millisecond
 
-	BoardWidth  = NrOfTravelers
+	BoardWidth  = NrOfProcess
 	BoardHeight = 4
 )
 
-var startTime = time.Now()
-var wg sync.WaitGroup
+type ProcessState int
 
-var (
-	flag       [2]bool
-	turn       int
-	dekkerLock sync.Mutex // guards access to flag and turn
+const (
+	LocalSection ProcessState = iota
+	EntryProtocol
+	CriticalSection
+	ExitProtocol
 )
+
+var startTime = time.Now()
+
+// zmienne potrzebne do algorytmu Dekkera
+var flag [NrOfProcess]int32
+var turn int32
 
 type Position struct {
 	X int
@@ -42,7 +52,7 @@ type TraceType struct {
 
 type TraceArray [MaxSteps + 1]TraceType
 
-type TracesSequence struct {
+type Traces_Sequence_Type struct {
 	Last       int
 	TraceArray TraceArray
 }
@@ -52,108 +62,115 @@ func PrintTrace(t TraceType) {
 	fmt.Printf("%.6f %d %d %d %c\n", elapsed, t.Id, t.Position.X, t.Position.Y, t.Symbol)
 }
 
-func PrintTraces(t TracesSequence) {
+func PrintTraces(t Traces_Sequence_Type) {
 	for i := 0; i <= t.Last; i++ {
 		PrintTrace(t.TraceArray[i])
 	}
 }
 
-var reportChannel = make(chan TracesSequence, NrOfTravelers+50)
+var reportChannel = make(chan Traces_Sequence_Type, NrOfProcess)
 
-func printer(done chan struct{}) {
-	defer close(done)
-	for traces := range reportChannel {
+func printer() {
+	for i := 0; i < NrOfProcess; i++ {
+		traces := <-reportChannel
 		PrintTraces(traces)
 	}
-}
 
-func enterDekker(id int, r *rand.Rand) {
-	other := 1 - id
-	dekkerLock.Lock()
-	flag[id] = true
-	dekkerLock.Unlock()
+	fmt.Printf("-1 %d %d %d ", NrOfProcess, BoardWidth, BoardHeight)
 
-	for {
-		dekkerLock.Lock()
-		if flag[other] {
-			if turn == other {
-				flag[id] = false
-				dekkerLock.Unlock()
-				time.Sleep(MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay))))
-				dekkerLock.Lock()
-				flag[id] = true
-				dekkerLock.Unlock()
-				continue
-			}
-		} else {
-			dekkerLock.Unlock()
-			break
-		}
-		dekkerLock.Unlock()
+	states := []string{"Local_Section", "Entry_Protocol", "Critical_Section", "Exit_Protocol"}
+	for _, state := range states {
+		fmt.Printf("%s;", state)
 	}
+
+	fmt.Println("EXTRA_LABEL;")
+	WaitGroup.Done()
 }
 
-func exitDekker(id int) {
-	other := 1 - id
-	dekkerLock.Lock()
-	turn = other
-	flag[id] = false
-	dekkerLock.Unlock()
+type Process struct {
+	Id       int
+	Symbol   rune
+	Position Position
 }
 
-func processTask(id int, symbol rune) {
-	defer wg.Done()
-	r := rand.New(rand.NewSource(time.Now().UnixNano() + int64(id)))
-	var traces TracesSequence
+func process(id int, symbol rune, seed int) {
+	defer func() {
+		atomic.StoreInt32(&flag[id], 0)
+		atomic.StoreInt32(&turn, int32(1-id))
+	}()
+
+	defer WaitGroup.Done()
+	r := rand.New(rand.NewSource(int64(seed)))
+
+	var state ProcessState = LocalSection
+
+	var process Process
+	process.Id = id
+	process.Symbol = symbol
+	process.Position.X = id
+	process.Position.Y = int(state)
+
+	var traces Traces_Sequence_Type
 	traces.Last = -1
 
-	storeTrace := func(y int, sym rune) {
-		if traces.Last < MaxSteps {
-			traces.Last++
-			traces.TraceArray[traces.Last] = TraceType{
-				Time_Stamp: time.Now(),
-				Id:         id,
-				Position:   Position{X: id, Y: y},
-				Symbol:     sym,
-			}
+	storeTrace := func() {
+		process.Position.Y = int(state)
+		timeStamp := time.Since(startTime)
+		traces.Last++
+		traces.TraceArray[traces.Last] = TraceType{
+			Time_Stamp: startTime.Add(timeStamp),
+			Id:         process.Id,
+			Position:   process.Position,
+			Symbol:     process.Symbol,
 		}
 	}
 
-	steps := MinSteps + r.Intn(MaxSteps-MinSteps+1)
+	storeTrace()
 
-	for step := 0; step < steps; step++ {
-		storeTrace(0, symbol)
-		time.Sleep(MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay))))
+	nrOfSteps := MinSteps + r.Intn(MaxSteps-MinSteps+1)
 
-		storeTrace(1, symbol)
-		enterDekker(id, r)
+	for i := 0; i < nrOfSteps/4-1; i++ {
+		state = LocalSection
+		delay := MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay)))
+		time.Sleep(delay)
+		state = EntryProtocol
+		storeTrace()
+		atomic.StoreInt32(&flag[id], 1)
+		for atomic.LoadInt32(&flag[1-id]) == 1 {
+			if atomic.LoadInt32(&turn) == int32(1-id) {
+				atomic.StoreInt32(&flag[id], 0)
+				for atomic.LoadInt32(&turn) != int32(id) {
+					time.Sleep(1 * time.Millisecond)
+				}
+				atomic.StoreInt32(&flag[id], 1)
+			}
+		}
+		delay = MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay)))
+		time.Sleep(delay)
+		state = CriticalSection
+		storeTrace()
+		delay = MinDelay
+		time.Sleep(delay)
 
-		storeTrace(2, symbol)
-		time.Sleep(MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay))))
-
-		storeTrace(3, symbol)
-		exitDekker(id)
-		time.Sleep(1 * time.Millisecond)
+		state = ExitProtocol
+		storeTrace()
+		atomic.StoreInt32(&flag[id], 0)
+		atomic.StoreInt32(&turn, int32(1-id))
+		delay = MinDelay
+		time.Sleep(delay)
+		state = LocalSection
+		storeTrace()
 	}
-
 	reportChannel <- traces
 }
 
 func main() {
-	symbols := []rune{'A', 'B'}
-
-	printerDone := make(chan struct{})
-	go printer(printerDone)
-
-	wg.Add(NrOfTravelers)
-	for i := 0; i < NrOfTravelers; i++ {
-		go processTask(i, symbols[i])
+	WaitGroup.Add(1)
+	go printer()
+	symbols := []rune{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'}
+	for i := 0; i < NrOfProcess; i++ {
+		WaitGroup.Add(1)
+		go process(i, symbols[i], i)
 	}
-
-	wg.Wait()
-	close(reportChannel)
-	<-printerDone
-
-	fmt.Printf("-1 %d %d %d LOCAL_SECTION;ENTRY_PROTOCOL;CRITICAL_SECTION;EXIT_PROTOCOL;\n",
-		NrOfTravelers, BoardWidth, BoardHeight)
+	WaitGroup.Wait()
 }

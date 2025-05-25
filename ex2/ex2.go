@@ -4,23 +4,62 @@ import (
 	"fmt"
 	"math/rand"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
+var WaitGroup sync.WaitGroup
+
 const (
-	NrOfTravelers = 15
-	MinSteps      = 50
-	MaxSteps      = 100
+	NrOfProcess = 15
+
+	MinSteps = 50
+	MaxSteps = 100
 
 	MinDelay = 10 * time.Millisecond
 	MaxDelay = 50 * time.Millisecond
 
-	BoardWidth  = NrOfTravelers
+	BoardWidth  = NrOfProcess
 	BoardHeight = 4
 )
 
+// zmienne potrzebne do algorytmu Piekarnianego
+var Flag [NrOfProcess]int32
+var Number [NrOfProcess]int32
+var maxUsedTicket int32 = 0
+
+func findMax(arr []int32) int32 {
+	maxVal := atomic.LoadInt32(&arr[0])
+	for i := 1; i < len(arr); i++ {
+		val := atomic.LoadInt32(&arr[i])
+		if val > maxVal {
+			maxVal = val
+		}
+	}
+	return maxVal
+}
+func updateMaxTicket(val int32) {
+	for {
+		current := atomic.LoadInt32(&maxUsedTicket)
+		if val <= current {
+			return
+		}
+		if atomic.CompareAndSwapInt32(&maxUsedTicket, current, val) {
+			return
+		}
+	}
+}
+
+type ProcessState int
+
+const (
+	LocalSection ProcessState = iota
+	EntryProtocol
+	CriticalSection
+	ExitProtocol
+)
+
 var startTime = time.Now()
-var wg sync.WaitGroup
 
 type Position struct {
 	X int
@@ -36,7 +75,7 @@ type TraceType struct {
 
 type TraceArray [MaxSteps + 1]TraceType
 
-type TracesSequence struct {
+type Traces_Sequence_Type struct {
 	Last       int
 	TraceArray TraceArray
 }
@@ -46,178 +85,146 @@ func PrintTrace(t TraceType) {
 	fmt.Printf("%.6f %d %d %d %c\n", elapsed, t.Id, t.Position.X, t.Position.Y, t.Symbol)
 }
 
-func PrintTraces(t TracesSequence) {
+func PrintTraces(t Traces_Sequence_Type) {
 	for i := 0; i <= t.Last; i++ {
 		PrintTrace(t.TraceArray[i])
 	}
 }
 
-var reportChannel = make(chan TracesSequence, NrOfTravelers+50)
+var reportChannel = make(chan Traces_Sequence_Type, NrOfProcess)
 
-func printer(done chan struct{}) {
-	defer close(done)
-	for traces := range reportChannel {
+func printer() {
+	defer WaitGroup.Done()
+	for i := 0; i < NrOfProcess; i++ {
+		traces := <-reportChannel
 		PrintTraces(traces)
 	}
-}
 
-type Bakery struct {
-	choosing      []bool
-	number        []int
-	maxUsedTicket int
-	lock          sync.Mutex
-}
+	fmt.Printf("-1 %d %d %d ", NrOfProcess, BoardWidth, BoardHeight)
 
-func NewBakery(n int) *Bakery {
-	return &Bakery{
-		choosing: make([]bool, n),
-		number:   make([]int, n),
+	states := []string{"Local_Section", "Entry_Protocol", "Critical_Section", "Exit_Protocol"}
+	for _, state := range states {
+		fmt.Printf("%s;", state)
 	}
+
+	fmt.Println("MAX_TICKET = ", atomic.LoadInt32(&maxUsedTicket), ";")
+
 }
 
-func (b *Bakery) SetChoosing(i int, val bool) {
-	b.lock.Lock()
-	b.choosing[i] = val
-	b.lock.Unlock()
+type Process struct {
+	Id       int
+	Symbol   rune
+	Position Position
 }
 
-func (b *Bakery) IsChoosing(i int) bool {
-	b.lock.Lock()
-	val := b.choosing[i]
-	b.lock.Unlock()
-	return val
-}
+func process(id int, symbol rune, seed int) {
+	defer WaitGroup.Done()
 
-func (b *Bakery) SetNumber(i int, val int) {
-	b.lock.Lock()
-	b.number[i] = val
-	b.lock.Unlock()
-}
+	r := rand.New(rand.NewSource(int64(seed)))
 
-func (b *Bakery) GetNumber(i int) int {
-	b.lock.Lock()
-	val := b.number[i]
-	b.lock.Unlock()
-	return val
-}
+	var state ProcessState = LocalSection
 
-func (b *Bakery) MaxTicket() int {
-	b.lock.Lock()
-	defer b.lock.Unlock()
-	max := 0
-	for _, v := range b.number {
-		if v > max {
-			max = v
-		}
+	process := Process{
+		Id:     id,
+		Symbol: symbol,
+		Position: Position{
+			X: id,
+			Y: int(state),
+		},
 	}
-	return max
-}
 
-// UpdateMax aktualizuje globalny max ticket jeśli nowa wartość jest większa
-func (b *Bakery) UpdateMax(val int) {
-	b.lock.Lock()
-	if val > b.maxUsedTicket {
-		b.maxUsedTicket = val
-	}
-	b.lock.Unlock()
-}
-
-func (b *Bakery) GetMax() int {
-	b.lock.Lock()
-	val := b.maxUsedTicket
-	b.lock.Unlock()
-	return val
-}
-
-// ResetTicket zeruje ticket procesu i aktualizuje maxUsedTicket jeśli trzeba
-func (b *Bakery) ResetTicket(processId int) {
-	b.lock.Lock()
-	ticket := b.number[processId]
-	if ticket > b.maxUsedTicket {
-		b.maxUsedTicket = ticket
-	}
-	b.number[processId] = 0
-	b.lock.Unlock()
-}
-
-var bakery = NewBakery(NrOfTravelers)
-
-func processTask(id int, symbol rune) {
-	defer wg.Done()
-	r := rand.New(rand.NewSource(time.Now().UnixNano() + int64(id)))
-	var traces TracesSequence
+	var traces Traces_Sequence_Type
 	traces.Last = -1
-	//pos := Position{X: id, Y: 0} // starting at Local_Section = 0
-
-	// pomocnicza funkcja do zapisu śladu
-	storeTrace := func(y int, sym rune) {
-		if traces.Last < MaxSteps {
+	var lastState ProcessState = -1
+	storeTrace := func() {
+		if state != lastState && traces.Last < MaxSteps {
+			process.Position.Y = int(state)
+			timeStamp := time.Since(startTime)
 			traces.Last++
 			traces.TraceArray[traces.Last] = TraceType{
-				Time_Stamp: time.Now(),
-				Id:         id,
-				Position:   Position{X: id, Y: y},
-				Symbol:     sym,
+				Time_Stamp: startTime.Add(timeStamp),
+				Id:         process.Id,
+				Position:   process.Position,
+				Symbol:     process.Symbol,
 			}
+			lastState = state
 		}
 	}
 
-	// liczba kroków do wykonania
-	steps := MinSteps + r.Intn(MaxSteps-MinSteps+1)
+	storeTrace() // trace initial position
 
-	for step := 0; step < steps; step++ {
-		// Local Section
-		storeTrace(0, symbol)
+	nrOfSteps := MinSteps + r.Intn(MaxSteps-MinSteps+1)
+	nrOfSteps = nrOfSteps/4 - 1
+	for step := 0; step < nrOfSteps; step++ {
+		// LOCAL_SECTION
+		state = LocalSection
+		storeTrace()
 		time.Sleep(MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay))))
 
-		// Entry protocol
-		storeTrace(1, symbol)
-		bakery.SetChoosing(id, true)
-		maxTicket := bakery.MaxTicket()
+		// ENTRY_PROTOCOL
+		state = EntryProtocol
+		storeTrace()
+
+		// Entry protocol logic (choosing ticket number)
+		atomic.StoreInt32(&Flag[id], 1)
+		maxTicket := findMax(Number[:])
 		newTicket := maxTicket + 1
-		bakery.SetNumber(id, newTicket)
-		bakery.UpdateMax(newTicket)
-		bakery.SetChoosing(id, false)
+		atomic.StoreInt32(&Number[id], newTicket)
+		updateMaxTicket(newTicket)
+		atomic.StoreInt32(&Flag[id], 0)
 
-		for j := 0; j < NrOfTravelers; j++ {
-			for bakery.IsChoosing(j) {
-				// czekaj
+		// Wait for other processes
+		for j := 0; j < NrOfProcess; j++ {
+			if j == id {
+				continue
 			}
-			for bakery.GetNumber(j) != 0 &&
-				(bakery.GetNumber(j) < bakery.GetNumber(id) ||
-					(bakery.GetNumber(j) == bakery.GetNumber(id) && j < id)) {
-				// czekaj
+
+			// Wait while process j is choosing number
+			for atomic.LoadInt32(&Flag[j]) == 1 {
+				time.Sleep(1 * time.Millisecond)
+			}
+
+			// Wait while j has ticket and j's ticket < id's or equal but j < id
+			for atomic.LoadInt32(&Number[j]) != 0 &&
+				(atomic.LoadInt32(&Number[j]) < atomic.LoadInt32(&Number[id]) ||
+					(atomic.LoadInt32(&Number[j]) == atomic.LoadInt32(&Number[id]) && j < id)) {
+				time.Sleep(10 * time.Millisecond)
 			}
 		}
 
-		// Critical Section
-		storeTrace(2, symbol)
+		// CRITICAL_SECTION
+		state = CriticalSection
+		storeTrace()
 		time.Sleep(MinDelay + time.Duration(r.Int63n(int64(MaxDelay-MinDelay))))
 
-		// Exit protocol
-		storeTrace(3, symbol)
-		bakery.ResetTicket(id)
+		// EXIT_PROTOCOL
+		state = ExitProtocol
+		storeTrace()
+
+		// Reset ticket and update max if needed
+		currentTicket := atomic.LoadInt32(&Number[id])
+		if currentTicket > atomic.LoadInt32(&Number[id]) {
+			// optional: update some global max if you keep track (not mandatory here)
+
+		}
+		atomic.StoreInt32(&Number[id], 0)
 		time.Sleep(1 * time.Millisecond)
+		state = LocalSection
+		storeTrace()
 
+		time.Sleep(1 * time.Millisecond)
 	}
-
 	reportChannel <- traces
 }
 
 func main() {
-
+	//fmt.Println("Poczatkoa tablica: ", Flag)
+	WaitGroup.Add(1)
+	go printer()
 	symbols := []rune{'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'}
-
-	printerDone := make(chan struct{})
-	go printer(printerDone)
-
-	wg.Add(NrOfTravelers)
-	for i := 0; i < NrOfTravelers; i++ {
-		go processTask(i, symbols[i])
+	for i := 0; i < NrOfProcess; i++ {
+		WaitGroup.Add(1)
+		go process(i, symbols[i], i)
 	}
-	wg.Wait()
-	close(reportChannel)
-	<-printerDone
-	fmt.Printf("-1 %d %d %d LOCAL_SECTION;ENTRY_PROTOCOL;CRITICAL_SECTION;EXIT_PROTOCOL;MAX_TICKET=%d\n", NrOfTravelers, BoardWidth, BoardHeight, bakery.GetMax())
-
+	WaitGroup.Wait()
 }
